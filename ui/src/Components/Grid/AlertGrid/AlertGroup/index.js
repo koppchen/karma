@@ -3,6 +3,8 @@ import PropTypes from "prop-types";
 
 import { useObserver } from "mobx-react-lite";
 
+import { Transition } from "react-transition-group";
+
 import { Fade } from "react-reveal";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -55,6 +57,7 @@ const AlertGroup = ({
   groupWidth,
   gridLabelValue,
   initialAlertsToRender,
+  ...props
 }) => {
   const defaultRenderCount =
     settingsStore.alertGroupConfig.config.defaultRenderCount;
@@ -165,98 +168,101 @@ const AlertGroup = ({
   const [fadeDone, setFadeDone] = useState(false);
 
   return useObserver(() => (
-    <div
-      ref={mountRef}
-      className={`components-grid-alertgrid-alertgroup ${
-        mountRef.current && fadeDone
-          ? "components-animation-fade-appear-done"
-          : ""
-      }`}
-      style={{
-        width: groupWidth,
-        zIndex: isMenuOpen ? 100 : null,
-      }}
-      data-defaultrendercount={
-        settingsStore.alertGroupConfig.config.defaultRenderCount
-      }
-    >
-      <Fade
-        in={context.animations.in}
-        duration={context.animations.duration}
-        wait={context.animations.duration}
-        onReveal={() => setFadeDone(true)}
+    <Transition timeout={context.animations.duration} {...props} unmountOnExit>
+      <div
+        ref={mountRef}
+        className={`components-grid-alertgrid-alertgroup ${
+          mountRef.current && fadeDone
+            ? "components-animation-fade-appear-done"
+            : ""
+        }`}
+        style={{
+          width: groupWidth,
+          zIndex: isMenuOpen ? 100 : null,
+        }}
+        data-defaultrendercount={
+          settingsStore.alertGroupConfig.config.defaultRenderCount
+        }
       >
-        <div
-          className={`card ${cardBackgroundClass}`}
-          data-colortitlebar={
-            settingsStore.alertGroupConfig.config.colorTitleBar
-          }
+        <Fade
+          duration={context.animations.duration}
+          wait={context.animations.duration}
+          onReveal={() => setFadeDone(true)}
+          {...props}
+          in={props.in === false ? false : context.animations.in}
         >
-          <GroupHeader
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-            group={group}
-            alertStore={alertStore}
-            silenceFormStore={silenceFormStore}
-            themedCounters={themedCounters}
-            setIsMenuOpen={setIsMenuOpen}
-            gridLabelValue={gridLabelValue}
-          />
-          {isCollapsed ? null : (
-            <div className="card-body px-2 py-1 components-grid-alertgrid-card">
-              <ul className="list-group">
-                {group.alerts.slice(0, alertsToRender).map((alert) => (
-                  <Alert
-                    key={alert.id}
-                    group={group}
-                    alert={alert}
-                    showAlertmanagers={
-                      showAlertmanagers && !showAlertmanagersInFooter
-                    }
-                    showReceiver={
-                      alertStore.data.receivers.length > 1 &&
-                      group.alerts.length === 1
-                    }
-                    afterUpdate={afterUpdate}
-                    alertStore={alertStore}
-                    silenceFormStore={silenceFormStore}
-                    setIsMenuOpen={setIsMenuOpen}
-                  />
-                ))}
-                {group.alerts.length > defaultRenderCount ? (
-                  <li className="list-group-item border-0 p-0 text-center bg-transparent">
-                    <LoadButton
-                      icon={faMinus}
-                      action={loadLess}
-                      tooltip="Show fewer alerts in this group"
-                    />
-                    <small className="text-muted mx-2">
-                      {Math.min(alertsToRender, group.alerts.length)}
-                      {" of "}
-                      {group.alerts.length}
-                    </small>
-                    <LoadButton
-                      icon={faPlus}
-                      action={loadMore}
-                      tooltip="Show more alerts in this group"
-                    />
-                  </li>
-                ) : null}
-              </ul>
-            </div>
-          )}
-          {isCollapsed === false && group.alerts.length > 1 ? (
-            <GroupFooter
+          <div
+            className={`card ${cardBackgroundClass}`}
+            data-colortitlebar={
+              settingsStore.alertGroupConfig.config.colorTitleBar
+            }
+          >
+            <GroupHeader
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
               group={group}
-              alertmanagers={footerAlertmanagers}
-              afterUpdate={afterUpdate}
               alertStore={alertStore}
               silenceFormStore={silenceFormStore}
+              themedCounters={themedCounters}
+              setIsMenuOpen={setIsMenuOpen}
+              gridLabelValue={gridLabelValue}
             />
-          ) : null}
-        </div>
-      </Fade>
-    </div>
+            {isCollapsed ? null : (
+              <div className="card-body px-2 py-1 components-grid-alertgrid-card">
+                <ul className="list-group">
+                  {group.alerts.slice(0, alertsToRender).map((alert) => (
+                    <Alert
+                      key={alert.id}
+                      group={group}
+                      alert={alert}
+                      showAlertmanagers={
+                        showAlertmanagers && !showAlertmanagersInFooter
+                      }
+                      showReceiver={
+                        alertStore.data.receivers.length > 1 &&
+                        group.alerts.length === 1
+                      }
+                      afterUpdate={afterUpdate}
+                      alertStore={alertStore}
+                      silenceFormStore={silenceFormStore}
+                      setIsMenuOpen={setIsMenuOpen}
+                    />
+                  ))}
+                  {group.alerts.length > defaultRenderCount ? (
+                    <li className="list-group-item border-0 p-0 text-center bg-transparent">
+                      <LoadButton
+                        icon={faMinus}
+                        action={loadLess}
+                        tooltip="Show fewer alerts in this group"
+                      />
+                      <small className="text-muted mx-2">
+                        {Math.min(alertsToRender, group.alerts.length)}
+                        {" of "}
+                        {group.alerts.length}
+                      </small>
+                      <LoadButton
+                        icon={faPlus}
+                        action={loadMore}
+                        tooltip="Show more alerts in this group"
+                      />
+                    </li>
+                  ) : null}
+                </ul>
+              </div>
+            )}
+            {isCollapsed === false && group.alerts.length > 1 ? (
+              <GroupFooter
+                group={group}
+                alertmanagers={footerAlertmanagers}
+                afterUpdate={afterUpdate}
+                alertStore={alertStore}
+                silenceFormStore={silenceFormStore}
+              />
+            ) : null}
+          </div>
+        </Fade>
+      </div>
+    </Transition>
   ));
 };
 AlertGroup.propTypes = {

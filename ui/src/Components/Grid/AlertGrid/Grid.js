@@ -5,6 +5,8 @@ import { useObserver } from "mobx-react-lite";
 
 import debounce from "lodash.debounce";
 
+import TransitionGroup from "react-transition-group/TransitionGroup";
+
 import { Fade } from "react-reveal";
 
 import FontFaceObserver from "fontfaceobserver";
@@ -114,25 +116,27 @@ const Grid = ({
           paddingRight: outerPadding + "px",
         }}
       >
-        {isExpanded || grid.labelName === ""
-          ? grid.alertGroups
-              .slice(0, groupsToRender)
-              .map((group) => (
-                <AlertGroup
-                  key={group.id}
-                  group={group}
-                  showAlertmanagers={
-                    Object.keys(alertStore.data.upstreams.clusters).length > 1
-                  }
-                  afterUpdate={debouncedRepack}
-                  alertStore={alertStore}
-                  settingsStore={settingsStore}
-                  silenceFormStore={silenceFormStore}
-                  groupWidth={groupWidth}
-                  gridLabelValue={grid.labelValue}
-                />
-              ))
-          : []}
+        <TransitionGroup component={null} appear enter exit>
+          {isExpanded || grid.labelName === ""
+            ? grid.alertGroups
+                .slice(0, groupsToRender)
+                .map((group) => (
+                  <AlertGroup
+                    key={group.id}
+                    group={group}
+                    showAlertmanagers={
+                      Object.keys(alertStore.data.upstreams.clusters).length > 1
+                    }
+                    afterUpdate={debouncedRepack}
+                    alertStore={alertStore}
+                    settingsStore={settingsStore}
+                    silenceFormStore={silenceFormStore}
+                    groupWidth={groupWidth}
+                    gridLabelValue={grid.labelValue}
+                  />
+                ))
+            : []}
+        </TransitionGroup>
       </div>
       {isExpanded && grid.alertGroups.length > groupsToRender && (
         <div className="d-flex flex-row justify-content-between">
